@@ -54,6 +54,8 @@ func HandleRequest(events Webhook) (string, error) {
 		log.Fatal(err)
 	}
 
+	loc, _ := time.LoadLocation(timeZone)
+
 	for _, event := range events.Events {
 		log.Printf("%+v", event)
 		if event.Type == "message" {
@@ -74,32 +76,23 @@ func HandleRequest(events Webhook) (string, error) {
 				if err != nil {
 					log.Fatalf("Unable to retrieve Calendar client: %v", err)
 				}
-				calEvent := &calendar.Event{}
+
 				msgs := strings.Split(event.Message.Text, "\n")
 				log.Printf("%+v", msgs)
-				for i, msg := range msgs {
-					switch i {
-					case 1:
-						calEvent.Summary = msg
-					case 2:
-						calEvent.Location = msg
-					case 3:
-						calEvent.Description = msg
-					case 4:
-						start, _ := time.Parse(timeParseForm, msg)
-						calEvent.Start = &calendar.EventDateTime{
-							DateTime: start.Format(time.RFC3339),
-							TimeZone: timeZone,
-						}
-					case 5:
-						end, _ := time.Parse(timeParseForm, msg)
-						calEvent.End = &calendar.EventDateTime{
-							DateTime: end.Format(time.RFC3339),
-							TimeZone: timeZone,
-						}
-					default:
-						continue
-					}
+				start, _ := time.ParseInLocation(timeParseForm, msgs[4], loc)
+				end, _ := time.ParseInLocation(timeParseForm, msgs[5], loc)
+				calEvent := &calendar.Event{
+					Summary:     msgs[1],
+					Location:    msgs[2],
+					Description: msgs[3],
+					Start: &calendar.EventDateTime{
+						DateTime: start.Format(time.RFC3339),
+						TimeZone: timeZone,
+					},
+					End: &calendar.EventDateTime{
+						DateTime: end.Format(time.RFC3339),
+						TimeZone: timeZone,
+					},
 				}
 				resultEvent, err := srv.Events.Insert(calendarId, calEvent).Do()
 				if err != nil {
@@ -107,6 +100,11 @@ func HandleRequest(events Webhook) (string, error) {
 				}
 				log.Printf("%+v", resultEvent)
 				reply := "予定登録できたよ！\n" + resultEvent.HtmlLink
+				if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply)).Do(); err != nil {
+					log.Print(err)
+				}
+			} else if strings.HasPrefix(event.Message.Text, "予定登録フォーマット") {
+				reply := "予定登録フォーマット↓だよ。１行目は必ず`予定登録`っていれてね。\n\n予定登録\n[タイトル]\n[場所]\n[詳細]\n[開始時間(2018-01-02 12:30)]\n[終了時間(2018-01-03 20:30)]"
 				if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply)).Do(); err != nil {
 					log.Print(err)
 				}

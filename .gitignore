@@ -1,6 +1,5 @@
 .DS_Store
-
-kawakatsu-line*
-client_secret.json
+.vscode
+bin
 
 !.gitkeep

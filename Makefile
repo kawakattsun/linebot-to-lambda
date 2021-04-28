@@ -9,8 +9,13 @@ all: build
 
 build: bin/g2l
 
-bin/g2l: $(BUILD_FILES)
+bin/linebot-to-lambda: $(BUILD_FILES)
 	@go build -trimpath -ldflags "$(GO_LDFLAGS)" -o "$@" .
+
+build-lambda: deploy/lambda/linebot-to-lambda/main
+
+deploy/lambda/linebot-to-lambda/main: $(BUILD_FILES)
+	@GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "$(GO_LDFLAGS)" -o "$@" .
 
 lint:
 	@echo "golint running..."

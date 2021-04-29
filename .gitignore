@@ -1,8 +1,8 @@
 .DS_Store
 .vscode
 .env
+.aws-sam
 bin
-deploy
 samconfig.toml
 
 !.gitkeep

@@ -72,7 +72,7 @@ func initParameter(
 		session.Must(session.NewSession()),
 		aws.NewConfig().WithRegion(os.Getenv("AWS_REGION")),
 	)
-	input := ssm.GetParametersInput{
+	input := &ssm.GetParametersInput{
 		Names: []*string{
 			aws.String(googleCalendarIDName),
 			aws.String(lineChannelAccessTokenName),
@@ -82,11 +82,11 @@ func initParameter(
 	}
 	output, err := svc.GetParameters(input)
 	if err != nil {
-		fmt.Errorf("ssm GetParameters error occurred: %w", err)
+		err := fmt.Errorf("ssm GetParameters error occurred: %w", err)
 		return nil, err
 	}
 	envMap := make(map[string]string)
-	for _, p := range output.GetParameters {
+	for _, p := range output.Parameters {
 		envMap[*p.Name] = *p.Value
 	}
 	return envMap, nil
@@ -95,18 +95,19 @@ func initParameter(
 func initCalendarService() (*calendar.Service, error) {
 	b, err := ioutil.ReadFile("client_secret.json")
 	if err != nil {
-		fmt.Errorf("Unable to read client secret file: %w", err)
+		err := fmt.Errorf("Unable to read client secret file: %w", err)
 		return nil, err
 	}
 	config, err := google.JWTConfigFromJSON(b, calendar.CalendarScope)
 	if err != nil {
-		fmt.Errorf("Unable to parse client secret file to config: %w", err)
+		err := fmt.Errorf("Unable to parse client secret file to config: %w", err)
 		return nil, err
 	}
 	client := config.Client(oauth2.NoContext)
 	srv, err := calendar.New(client)
 	if err != nil {
-		fmt.Errorf("Unable to retrieve Calendar client: %w", err)
+		err := fmt.Errorf("Unable to retrieve Calendar client: %w", err)
+		return nil, err
 	}
 	return srv, nil
 }

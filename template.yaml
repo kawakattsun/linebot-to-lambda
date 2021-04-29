@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  linebot-to-lambda
+  
+  Sample SAM Template for linebot-to-lambda
+
+Parameters:
+  GoogleCalendarID:
+    Type: String
+  LineChannelAccessToken:
+    Type: String
+  LineChannelSecret:
+    Type: String
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 29
+
+Resources:
+  Linebot2LambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: deploy/lambda/linebot-to-lambda
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      Events:
+        CatchAll:
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /webhook
+            Method: POST
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          GOOGLE_CALENDAR_ID: !Sub ${GoogleCalendarId}
+          LINE_CHANNEL_ACCESS_TOKEN: !Sub ${LineChannelAccessToken}
+          LINE_CHANNEL_SECRET: !Sub ${LineChannelSecret}
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  Linebot2LambdaAPI:
+    Description: "API Gateway endpoint URL for Prod environment for Linebot2Lambda Function"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessHttpApiApiGatewayDefaultStage}/hello/"
+  Linebot2LambdaFunction:
+    Description: "Linebot2Lambda Function ARN"
+    Value: !GetAtt Linebot2LambdaFunction.Arn
+  Linebot2LambdaFunctionIamRole:
+    Description: "Implicit IAM Role created for Linebot2Lambda function"
+    Value: !GetAtt Linebot2LambdaFunctionRole.Arn

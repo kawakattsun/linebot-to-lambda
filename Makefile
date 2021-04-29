@@ -7,7 +7,7 @@ GO_LDFLAGS += -X main.revision=$(REVISION)
 
 all: build
 
-build: bin/g2l
+build: bin/linebot2lambda
 
 bin/linebot-to-lambda: $(BUILD_FILES)
 	@go build -trimpath -ldflags "$(GO_LDFLAGS)" -o "$@" .

@@ -22,6 +22,7 @@ func HandleRequest(c *Config, r *http.Request) error {
 		if event.Type != linebot.EventTypeMessage {
 			continue
 		}
+		fmt.Println(event.Source)
 		switch message := event.Message.(type) {
 		case *linebot.TextMessage:
 			if strings.HasPrefix(message.Text, "予定登録\n") {

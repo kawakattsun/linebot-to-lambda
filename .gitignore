@@ -2,5 +2,7 @@
 .vscode
 .env
 bin
+deploy
+samconfig.toml
 
 !.gitkeep

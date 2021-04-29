@@ -6,6 +6,8 @@ Description: >
   Sample SAM Template for linebot-to-lambda
 
 Parameters:
+  ParameterStorePath:
+    Type: String
   GoogleCalendarID:
     Type: String
   LineChannelAccessToken:
@@ -34,9 +36,18 @@ Resources:
             Method: POST
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          GOOGLE_CALENDAR_ID: !Sub ${GoogleCalendarId}
+          GOOGLE_CALENDAR_ID: !Sub ${GoogleCalendarID}
           LINE_CHANNEL_ACCESS_TOKEN: !Sub ${LineChannelAccessToken}
           LINE_CHANNEL_SECRET: !Sub ${LineChannelSecret}
+      Policies:
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - sts:AssumeRole
+                - ssm:GetParameters
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:${ParameterStorePath}/*
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

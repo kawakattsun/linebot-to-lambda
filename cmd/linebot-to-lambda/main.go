@@ -8,6 +8,11 @@ import (
 	"github.com/kawakattsun/linebot2lambda"
 )
 
+var (
+	version  string
+	revision string
+)
+
 var config *linebot2lambda.Config
 
 func lambdaHandler(events linebot2lambda.Webhook) error {
@@ -15,6 +20,7 @@ func lambdaHandler(events linebot2lambda.Webhook) error {
 }
 
 func main() {
+	fmt.Printf("Start lambda function. %s %s-%s\n", os.Getenv("AWS_LAMBDA_FUNCTION_NAME"), version, revision)
 	c, err := linebot2lambda.Initialize()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)

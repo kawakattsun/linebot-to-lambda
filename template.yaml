@@ -8,6 +8,8 @@ Description: >
 Parameters:
   ParameterStorePath:
     Type: String
+  GoogleSecretJSON:
+    Type: String
   GoogleCalendarID:
     Type: String
   LineChannelAccessToken:
@@ -37,6 +39,7 @@ Resources:
             Method: POST
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
+          GOOGLE_SECRET_JSON: !Sub ${GoogleSecretJSON}
           GOOGLE_CALENDAR_ID: !Sub ${GoogleCalendarID}
           LINE_CHANNEL_ACCESS_TOKEN: !Sub ${LineChannelAccessToken}
           LINE_CHANNEL_SECRET: !Sub ${LineChannelSecret}

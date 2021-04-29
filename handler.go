@@ -34,6 +34,7 @@ type Message struct {
 }
 
 func HandleRequest(c *Config, events Webhook) error {
+	// line シグネチャの検証
 	for _, event := range events.Events {
 		if event.Type != "message" {
 			continue

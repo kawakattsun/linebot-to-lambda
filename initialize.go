@@ -2,7 +2,6 @@ package linebot2lambda
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -25,10 +24,12 @@ type Config struct {
 }
 
 func Initialize() (*Config, error) {
+	googleSecretJSON := os.Getenv("GOOGLE_SECRET_JSON")
 	googleCalendarIDName := os.Getenv("GOOGLE_CALENDAR_ID")
 	lineChannelAccessTokenName := os.Getenv("LINE_CHANNEL_ACCESS_TOKEN")
 	lineChannelSecretName := os.Getenv("LINE_CHANNEL_SECRET")
 	envMap, err := initParameter(
+		googleSecretJSON,
 		googleCalendarIDName,
 		lineChannelAccessTokenName,
 		lineChannelSecretName,
@@ -45,7 +46,7 @@ func Initialize() (*Config, error) {
 	}
 	c.Location = loc
 
-	srv, err := initCalendarService()
+	srv, err := initCalendarService([]byte(envMap[googleSecretJSON]))
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +65,7 @@ func Initialize() (*Config, error) {
 }
 
 func initParameter(
+	googleSecretJSON,
 	googleCalendarIDName,
 	lineChannelAccessTokenName,
 	lineChannelSecretName string,
@@ -74,9 +76,10 @@ func initParameter(
 	)
 	input := &ssm.GetParametersInput{
 		Names: []*string{
-			aws.String(googleCalendarIDName),
-			aws.String(lineChannelAccessTokenName),
-			aws.String(lineChannelSecretName),
+			&googleSecretJSON,
+			&googleCalendarIDName,
+			&lineChannelAccessTokenName,
+			&lineChannelSecretName,
 		},
 		WithDecryption: aws.Bool(true),
 	}
@@ -92,13 +95,8 @@ func initParameter(
 	return envMap, nil
 }
 
-func initCalendarService() (*calendar.Service, error) {
-	b, err := ioutil.ReadFile("client_secret.json")
-	if err != nil {
-		err := fmt.Errorf("Unable to read client secret file: %w", err)
-		return nil, err
-	}
-	config, err := google.JWTConfigFromJSON(b, calendar.CalendarScope)
+func initCalendarService(googleSecretJSON []byte) (*calendar.Service, error) {
+	config, err := google.JWTConfigFromJSON(googleSecretJSON, calendar.CalendarScope)
 	if err != nil {
 		err := fmt.Errorf("Unable to parse client secret file to config: %w", err)
 		return nil, err

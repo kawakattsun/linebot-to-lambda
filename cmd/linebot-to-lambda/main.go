@@ -1,17 +1,24 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/fujiwara/ridge"
 	"github.com/kawakattsun/linebot2lambda"
 )
 
 var config *linebot2lambda.Config
 
-func lambdaHandler(events linebot2lambda.Webhook) error {
-	return linebot2lambda.HandleRequest(config, events)
+func lambdaHandler(event json.RawMessage) error {
+	r, err := ridge.NewRequest(event)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ridge new request error occurred: %v\n", err)
+		return nil
+	}
+	return linebot2lambda.HandleRequest(config, r)
 }
 
 func main() {
